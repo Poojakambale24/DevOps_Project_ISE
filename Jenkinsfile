@@ -5,9 +5,11 @@ pipeline {
   }
   stages {
     stage('Checkout') {
-      steps {
-        git 'https://github.com/Poojakambale24/DevOps_Project_ISE.git'
-      }
+  steps {
+    git branch: 'main', url: 'https://github.com/Poojakambale24/DevOps_Project_ISE.git'
+  }
+}
+
     }
     stage('Build Docker Image') {
       steps {
