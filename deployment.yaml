@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-ise-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: devops-ise
+  template:
+    metadata:
+      labels:
+        app: devops-ise
+    spec:
+      containers:
+      - name: devops-ise
+        image: 24032004/devops_ise_project:latest
+        ports:
+        - containerPort: 80
