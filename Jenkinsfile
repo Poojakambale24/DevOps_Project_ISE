@@ -5,12 +5,11 @@ pipeline {
   }
   stages {
     stage('Checkout') {
-  steps {
-    git branch: 'main', url: 'https://github.com/Poojakambale24/DevOps_Project_ISE.git'
-  }
-}
-
+      steps {
+        git branch: 'main', url: 'https://github.com/Poojakambale24/DevOps_Project_ISE.git'
+      }
     }
+
     stage('Build Docker Image') {
       steps {
         script {
@@ -18,6 +17,7 @@ pipeline {
         }
       }
     }
+
     stage('Push to Docker Hub') {
       steps {
         script {
@@ -27,6 +27,7 @@ pipeline {
         }
       }
     }
+
     stage('Deploy to Kubernetes') {
       steps {
         sh 'kubectl apply -f deployment.yaml'
@@ -34,10 +35,10 @@ pipeline {
       }
     }
   }
+
   post {
     always {
       cleanWs()
     }
   }
 }
-
