@@ -4,11 +4,9 @@ pipeline {
     environment {
         registry = "24032004/devops_ise_project"
         registryCredential = "dockerhub-creded" // Your Docker Hub credentials in Jenkins
-        DOCKER_TLS_VERIFY = "1"
-        DOCKER_HOST = "tcp://127.0.0.1:55523"
-        DOCKER_CERT_PATH = "C:\\Users\\pooja\\.minikube\\certs"
-        MINIKUBE_ACTIVE_DOCKERD = "minikube"
-        KUBECONFIG = "C:\\Users\\pooja\\.kube\\config" // Make sure Jenkins user can access this file
+        // Add Minikube and Docker to PATH
+        PATH = "C:\\ProgramData\\chocolatey\\bin;C:\\Program Files\\Docker\\Docker\\resources\\bin;%PATH%"
+        KUBECONFIG = "C:\\Users\\pooja\\.kube\\config" // Ensure Jenkins user can access this
     }
 
     stages {
@@ -27,30 +25,37 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Define dockerImage and save globally using env variable
                     env.DOCKER_IMAGE_NAME = "${registry}:latest"
-                    dockerImage = docker.build("${env.DOCKER_IMAGE_NAME}")
+                    // Build Docker image using Windows batch
+                    bat """
+                    docker build -t %DOCKER_IMAGE_NAME% .
+                    """
                 }
             }
         }
 
-     stage('Push Docker Image') {
-    steps {
-        script {
-            def dockerImage = docker.image("${env.DOCKER_IMAGE_NAME}") // rebuild docker image object
-            docker.withRegistry('', 'dockerhub-creded') {             // ID must match your credential
-                dockerImage.push('latest')
-                dockerImage.push("${env.BUILD_NUMBER}")
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    bat """
+                    docker login -u %DOCKER_HUB_USERNAME% -p %DOCKER_HUB_PASSWORD%
+                    docker push %DOCKER_IMAGE_NAME%
+                    docker tag %DOCKER_IMAGE_NAME% ${registry}:%BUILD_NUMBER%
+                    docker push ${registry}:%BUILD_NUMBER%
+                    """
+                }
             }
         }
-    }
-}
 
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    // Use Minikube's kubectl to ensure authentication works
-                    bat 'minikube kubectl -- apply -f deployment.yaml'
+                    // Ensure Jenkins can access Minikube
+                    bat """
+                    minikube start --driver=docker
+                    minikube kubectl -- apply -f deployment.yaml
+                    minikube kubectl -- get pods
+                    """
                 }
             }
         }
