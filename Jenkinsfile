@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         registry = "24032004/devops_ise_project"
-        registryCredential = "dockerhub-creded"
+        registryCredential = "dockerhub-creded" // updated to your Jenkins credential ID
         DOCKER_TLS_VERIFY = "1"
         DOCKER_HOST = "tcp://127.0.0.1:55523"
         DOCKER_CERT_PATH = "C:\\Users\\pooja\\.minikube\\certs"
@@ -26,10 +26,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Define dockerImage using 'def' to avoid scope warnings
-                    def dockerImage = docker.build("${registry}:latest")
-                    // Save dockerImage to env for next stage
                     env.DOCKER_IMAGE_NAME = "${registry}:latest"
+                    docker.build(env.DOCKER_IMAGE_NAME)
                 }
             }
         }
@@ -37,11 +35,9 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    // Rebuild dockerImage object using env variable
-                    def dockerImage = docker.image("${env.DOCKER_IMAGE_NAME}")
                     docker.withRegistry('', registryCredential) {
-                        dockerImage.push('latest')
-                        dockerImage.push("${env.BUILD_NUMBER}")
+                        docker.image(env.DOCKER_IMAGE_NAME).push('latest')
+                        docker.image(env.DOCKER_IMAGE_NAME).push("${env.BUILD_NUMBER}")
                     }
                 }
             }
