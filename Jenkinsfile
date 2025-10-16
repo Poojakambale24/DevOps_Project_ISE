@@ -1,10 +1,10 @@
 pipeline {
     agent any
     environment {
-        registry = "24032004/devops_ise_project"       // Your Docker Hub repo
-        registryCredential = "dockerhub-credentials"   // Jenkins DockerHub credentials ID
+        registry = "24032004/devops_ise_project"
+        registryCredential = "dockerhub-credentials"
         DOCKER_TLS_VERIFY = "1"
-        DOCKER_HOST = "tcp://127.0.0.1:55523"         // Use your Minikube docker host
+        DOCKER_HOST = "tcp://127.0.0.1:55523"
         DOCKER_CERT_PATH = "C:\\Users\\pooja\\.minikube\\certs"
         MINIKUBE_ACTIVE_DOCKERD = "minikube"
     }
@@ -24,7 +24,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("${registry}:latest")
+                    def dockerImage = docker.build("${registry}:latest")
                 }
             }
         }
@@ -34,6 +34,7 @@ pipeline {
                 script {
                     docker.withRegistry('', registryCredential) {
                         dockerImage.push('latest')
+                        dockerImage.push("${env.BUILD_NUMBER}")
                     }
                 }
             }
