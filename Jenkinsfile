@@ -1,5 +1,6 @@
 pipeline {
     agent any
+
     environment {
         registry = "24032004/devops_ise_project"
         registryCredential = "dockerhub-credentials"
@@ -8,6 +9,7 @@ pipeline {
         DOCKER_CERT_PATH = "C:\\Users\\pooja\\.minikube\\certs"
         MINIKUBE_ACTIVE_DOCKERD = "minikube"
     }
+
     stages {
         stage('Checkout SCM') {
             steps {
@@ -24,8 +26,10 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // dockerImage is defined inside script block and accessible in this scope
-                    dockerImage = docker.build("${registry}:latest")
+                    // Define dockerImage using 'def' to avoid scope warnings
+                    def dockerImage = docker.build("${registry}:latest")
+                    // Save dockerImage to env for next stage
+                    env.DOCKER_IMAGE_NAME = "${registry}:latest"
                 }
             }
         }
@@ -33,7 +37,8 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    // Use the same dockerImage variable from previous stage
+                    // Rebuild dockerImage object using env variable
+                    def dockerImage = docker.image("${env.DOCKER_IMAGE_NAME}")
                     docker.withRegistry('', registryCredential) {
                         dockerImage.push('latest')
                         dockerImage.push("${env.BUILD_NUMBER}")
