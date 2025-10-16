@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         registry = "24032004/devops_ise_project"
-        registryCredential = "dockerhub-credentials"
+        registryCredential = "dockerhub-creded"
         DOCKER_TLS_VERIFY = "1"
         DOCKER_HOST = "tcp://127.0.0.1:55523"
         DOCKER_CERT_PATH = "C:\\Users\\pooja\\.minikube\\certs"
