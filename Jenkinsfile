@@ -3,10 +3,9 @@ pipeline {
 
     environment {
         registry = "24032004/devops_ise_project"
-        registryCredential = "dockerhub-creded" // Your Docker Hub credentials in Jenkins
-        // Add Minikube and Docker to PATH
+        registryCredential = "dockerhub-creded"  // Docker Hub credentials ID in Jenkins
         PATH = "C:\\ProgramData\\chocolatey\\bin;C:\\Program Files\\Docker\\Docker\\resources\\bin;%PATH%"
-        KUBECONFIG = "C:\\Users\\pooja\\.kube\\config" // Ensure Jenkins user can access this
+        KUBECONFIG = "C:\\Users\\pooja\\.kube\\config"  // Ensure Jenkins user can access this
     }
 
     stages {
@@ -26,7 +25,6 @@ pipeline {
             steps {
                 script {
                     env.DOCKER_IMAGE_NAME = "${registry}:latest"
-                    // Build Docker image using Windows batch
                     bat """
                     docker build -t %DOCKER_IMAGE_NAME% .
                     """
@@ -37,12 +35,11 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    bat """
-                    docker login -u %DOCKER_HUB_USERNAME% -p %DOCKER_HUB_PASSWORD%
-                    docker push %DOCKER_IMAGE_NAME%
-                    docker tag %DOCKER_IMAGE_NAME% ${registry}:%BUILD_NUMBER%
-                    docker push ${registry}:%BUILD_NUMBER%
-                    """
+                    docker.withRegistry('', 'dockerhub-creded') {
+                        def dockerImage = docker.image("${env.DOCKER_IMAGE_NAME}")
+                        dockerImage.push('latest')
+                        dockerImage.push("${env.BUILD_NUMBER}")
+                    }
                 }
             }
         }
@@ -50,9 +47,8 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    // Ensure Jenkins can access Minikube
+                    // Assume Minikube is already running
                     bat """
-                    minikube start --driver=docker
                     minikube kubectl -- apply -f deployment.yaml
                     minikube kubectl -- get pods
                     """
