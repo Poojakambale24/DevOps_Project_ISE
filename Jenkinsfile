@@ -34,18 +34,17 @@ pipeline {
             }
         }
 
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    // Rebuild dockerImage object using env variable
-                    def dockerImage = docker.image("${env.DOCKER_IMAGE_NAME}")
-                    docker.withRegistry('', "${registryCredential}") {
-                        dockerImage.push('latest')
-                        dockerImage.push("${env.BUILD_NUMBER}")
-                    }
-                }
+     stage('Push Docker Image') {
+    steps {
+        script {
+            def dockerImage = docker.image("${env.DOCKER_IMAGE_NAME}") // rebuild docker image object
+            docker.withRegistry('', 'dockerhub-creded') {             // ID must match your credential
+                dockerImage.push('latest')
+                dockerImage.push("${env.BUILD_NUMBER}")
             }
         }
+    }
+}
 
         stage('Deploy to Kubernetes') {
             steps {
