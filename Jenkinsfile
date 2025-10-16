@@ -27,8 +27,9 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    def dockerImage = docker.build("${registry}:latest")
+                    // Define dockerImage and save globally using env variable
                     env.DOCKER_IMAGE_NAME = "${registry}:latest"
+                    dockerImage = docker.build("${env.DOCKER_IMAGE_NAME}")
                 }
             }
         }
@@ -36,8 +37,9 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
+                    // Rebuild dockerImage object using env variable
                     def dockerImage = docker.image("${env.DOCKER_IMAGE_NAME}")
-                    docker.withRegistry('', registryCredential) {
+                    docker.withRegistry('', "${registryCredential}") {
                         dockerImage.push('latest')
                         dockerImage.push("${env.BUILD_NUMBER}")
                     }
