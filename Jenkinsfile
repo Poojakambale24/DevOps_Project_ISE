@@ -22,10 +22,10 @@ pipeline {
                     'DOCKER_CERT_PATH=C:\\Users\\pooja\\.minikube\\certs',
                     'MINIKUBE_ACTIVE_DOCKERD=minikube'
                 ]) {
-                    withDockerRegistry([credentialsId: 'dockerhub-creds', url: '']) {
-                        bat 'docker build -t 24032004/devops_ise_project:latest .'
-                        bat 'docker push 24032004/devops_ise_project:latest'
-                    }
+                   withDockerRegistry([credentialsId: 'dockerhub-credentials', url: '']) {
+    bat 'docker build -t 24032004/devops_ise_project:latest .'
+    bat 'docker push 24032004/devops_ise_project:latest'
+}
                 }
             }
         }
