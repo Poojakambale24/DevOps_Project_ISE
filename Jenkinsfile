@@ -8,9 +8,6 @@ pipeline {
         DOCKER_CERT_PATH = "C:\\Users\\pooja\\.minikube\\certs"
         MINIKUBE_ACTIVE_DOCKERD = "minikube"
     }
-    // Declare dockerImage here for global scope
-    def dockerImage
-
     stages {
         stage('Checkout SCM') {
             steps {
@@ -27,7 +24,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Assign to global variable
+                    // dockerImage is defined inside script block and accessible in this scope
                     dockerImage = docker.build("${registry}:latest")
                 }
             }
@@ -36,6 +33,7 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
+                    // Use the same dockerImage variable from previous stage
                     docker.withRegistry('', registryCredential) {
                         dockerImage.push('latest')
                         dockerImage.push("${env.BUILD_NUMBER}")
