@@ -3,11 +3,12 @@ pipeline {
 
     environment {
         registry = "24032004/devops_ise_project"
-       registryCredential = "dockerhub-creded"  // updated to your Jenkins credential ID
+        registryCredential = "dockerhub-creded" // Your Docker Hub credentials in Jenkins
         DOCKER_TLS_VERIFY = "1"
         DOCKER_HOST = "tcp://127.0.0.1:55523"
         DOCKER_CERT_PATH = "C:\\Users\\pooja\\.minikube\\certs"
         MINIKUBE_ACTIVE_DOCKERD = "minikube"
+        KUBECONFIG = "C:\\Users\\pooja\\.kube\\config" // Make sure Jenkins user can access this file
     }
 
     stages {
@@ -26,8 +27,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
+                    def dockerImage = docker.build("${registry}:latest")
                     env.DOCKER_IMAGE_NAME = "${registry}:latest"
-                    docker.build(env.DOCKER_IMAGE_NAME)
                 }
             }
         }
@@ -35,9 +36,10 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
+                    def dockerImage = docker.image("${env.DOCKER_IMAGE_NAME}")
                     docker.withRegistry('', registryCredential) {
-                        docker.image(env.DOCKER_IMAGE_NAME).push('latest')
-                        docker.image(env.DOCKER_IMAGE_NAME).push("${env.BUILD_NUMBER}")
+                        dockerImage.push('latest')
+                        dockerImage.push("${env.BUILD_NUMBER}")
                     }
                 }
             }
@@ -45,7 +47,10 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                bat 'kubectl apply -f deployment.yaml'
+                script {
+                    // Use Minikube's kubectl to ensure authentication works
+                    bat 'minikube kubectl -- apply -f deployment.yaml'
+                }
             }
         }
     }
